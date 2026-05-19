@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { logo, bgLogo } from '../../assets/images';
 import './style.css';
 import { Button } from '../../components/Button';
@@ -8,6 +9,7 @@ import axios from 'axios';
 function SignIn() {
   const navigate = useNavigate();
   const BACKEND_URL = import.meta.env.VITE_API_BASE_URL;
+  const [isLoading, setIsLoading] = useState(false);
 
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -48,12 +50,20 @@ function SignIn() {
       } catch (error: any) {
         console.error('Login Error details:', error.response?.data);
         alert('Authentication failed. Please try again.');
+      } finally {
+        setIsLoading(false);
       }
     },
     onError: (error) => {
       console.error('Google Login Failed:', error);
+      setIsLoading(false);
     }
   });
+
+  const handleGoogleClick = () => {
+    setIsLoading(true);
+    login();
+  };
 
   return (
     <div className="background">
@@ -83,10 +93,11 @@ function SignIn() {
       {/* 3. Auth Buttons */}
       <div className="w-full flex flex-col items-center gap-4 px-6 pb-12">
         <Button 
-          onClick={() => login()} 
+          onClick={handleGoogleClick} 
           className='bg-white !text-black w-full' 
-          title='Continue with Google' 
+          title={isLoading ? 'Connecting...' : 'Continue with Google'} 
           icon='logos:google-icon' // Updated to a standard google icon name
+          disabled={isLoading}
         />
 
         <Button 
@@ -94,6 +105,7 @@ function SignIn() {
           className='bg-white/50 !text-black w-full' 
           title='Continue with Apple' 
           icon='bitbtn:apple-dark'
+          disabled={isLoading}
         />
 
         {/* <p className="text-sm mt-4 text-white/80">

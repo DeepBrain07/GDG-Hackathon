@@ -30,6 +30,7 @@ class CookieJWTAuthentication(JWTAuthentication):
         raw_token = request.COOKIES.get(cookie_name)
         
         print(f"Target Cookie Name: {cookie_name}")
+        print(request.COOKIES)
         print(f"Token Value Found: {'[EXISTS]' if raw_token else '[NONE]'}")
 
         if raw_token:
