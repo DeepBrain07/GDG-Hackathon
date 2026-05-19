@@ -1,0 +1,10 @@
+export { default as logo } from "./logo.svg";
+export { default as logo2 } from "./logo2.svg";
+export { default as bgLogo } from "./bgLogo.svg";
+export { default as selfie } from "./selfie.svg";
+export { default as selfie2 } from "./selfie2.svg";
+export { default as bgGradient } from "./gradientBackground.svg";
+export { default as carrierLogo } from "./CarrierCardLogo.svg";
+export { default as senderLogo } from "./SenderCardLogo.svg";
+export { default as profileImage } from "./profileImage.jpg";
+export { default as escrowImage } from "./escrow.svg";

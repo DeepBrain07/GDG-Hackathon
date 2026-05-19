@@ -1,0 +1,21 @@
+.idea
+venv/
+/.env
+.env
+db.sqlite3
+image/
+media/
+
+/sendit-api/restclient/*
+
+# ✅ Django: Ignore all migration files EXCEPT __init__.py
+**/migrations/*
+!**/migrations/__init__.py
+
+guide/
+logs/
+**/__pycache__/
+
+docs/
+pipfile
+pipfile.lock

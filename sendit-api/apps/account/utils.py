@@ -1,0 +1,259 @@
+
+import threading
+import hashlib
+import random
+from datetime import datetime, timedelta
+from django.core.mail import EmailMessage, EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+from rest_framework.exceptions import ValidationError
+from .models import VerifyOTP
+
+
+User = get_user_model()
+
+OTP_EMAIL_EXPIRY_TIME = settings.OTP_EMAIL_EXPIRY_TIME
+OTP_PASSWORD_EXPIRY_TIME = settings.OTP_PASSWORD_EXPIRY_TIME
+
+
+def get_otp_expiry_time(purpose: str):
+    """Get purpose-specific expiry time"""
+    return {
+        'email': int(settings.OTP_EMAIL_EXPIRY_TIME),
+        'password': int(settings.OTP_PASSWORD_EXPIRY_TIME),
+        'phone': 10,  # Default 10 mins for phone
+    }.get(purpose, 10)
+
+
+def send_email_with_url(email: str, subject: str, otp_code: str, purpose: str, url_name: str, template: str, *args):
+    '''
+    subject = subject of the mail
+    email = recipient to send mail to
+    otp_code: raw otp
+    purpose = the type of the otp
+    url_name: URL name for verification endpoint
+    template e.g 'account/verification_otp.html'
+    '''
+
+    recipient = [email]
+
+    try:
+        # verify_url = reverse(url_name)
+        # full_url = f"{FRONTEND_URL}{verify_url}?email={email}"
+        full_url = f"{url_name}?email={email}"
+
+        context = {'email': email, 'purpose': purpose,
+                   'otp_code': otp_code, 'otp_expiry_time': get_otp_expiry_time(purpose),
+                   'verify_otp_url': full_url
+                   }
+
+        email_thread = EmailThread(subject, recipient, template, context)
+        email_thread.start()
+    except Exception as e:
+        raise ValidationError(str(e)) from e
+
+
+class OTPService:
+    """managing OTP"""
+
+    @staticmethod
+    def _generate_otp() -> str:
+        """Generate 6-digit OTP"""
+        return str(random.randint(100000, 999999))
+
+    @staticmethod
+    def _hash_otp(raw_otp: str) -> str:
+        """ Hash OTP using SHA-256"""
+        return hashlib.sha256(raw_otp.encode()).hexdigest()
+
+    @staticmethod
+    def _store_otp(identifier: str, hashed_otp: str, purpose: str) -> None:
+        """ Persist OTP record"""
+        if purpose == 'phone':
+            VerifyOTP.objects.create(
+                phone_number=identifier,
+                otp=hashed_otp,
+                purpose=purpose
+            )
+        else:
+            VerifyOTP.objects.create(
+                email=identifier,
+                otp=hashed_otp,
+                purpose=purpose
+            )
+
+    @staticmethod
+    def _expire_old_otps(identifier: str, purpose: str) -> int:
+        """Cleanup existing OTPs (returns deleted count)"""
+        if purpose == 'phone':
+            return VerifyOTP.objects.filter(
+                phone_number=identifier,
+                purpose=purpose
+            ).delete()[0]
+        else:
+            return VerifyOTP.objects.filter(
+                email=identifier,
+                purpose=purpose
+            ).delete()[0]
+
+    @classmethod
+    def generate_and_store_otp(cls, identifier: str, purpose: str) -> str:
+        """
+        Generate the otp, delete if user has a previous otp for that purpose,
+        stored the hashed otp with the purpose,
+        return the raw otp to be sent in the mail or sms
+        """
+        raw_otp = cls._generate_otp()
+        cls._expire_old_otps(identifier, purpose)
+        cls._store_otp(identifier, cls._hash_otp(raw_otp), purpose)
+        return raw_otp
+
+    @staticmethod
+    def verify_and_delete_otp(identifier: str, raw_otp: str, purpose: str) -> bool:
+        """
+        verify the otp if valid then delete
+        """
+        hashed_otp = hashlib.sha256(raw_otp.encode()).hexdigest()
+        expiry_limit = get_otp_expiry_time(purpose)
+        cutoff = timezone.now() - timedelta(minutes=expiry_limit)
+
+        try:
+            
+            if purpose == 'phone':
+                otp_record = VerifyOTP.objects.filter(
+                    phone_number=identifier,
+                    otp=hashed_otp,
+                    purpose=purpose,
+                    created_at__gte=cutoff
+                ).first()
+            else:
+                otp_record = VerifyOTP.objects.filter(
+                    email=identifier,
+                    otp=hashed_otp,
+                    purpose=purpose,
+                    created_at__gte=cutoff
+                ).first()
+
+            if otp_record:
+                otp_record.delete()
+                return True
+            return False
+      
+        except VerifyOTP.DoesNotExist:
+            return False
+
+
+class EmailThread(threading.Thread):
+    def __init__(self, subject: str, recipient_list: list, template: str, context: dict):
+        self.subject = subject
+        self.template = template
+        self.recipient_list = recipient_list
+        self.context = context
+        super().__init__()
+
+    def run(self):
+        try:
+            email = EmailMessage(
+                subject=self.subject,
+                body=render_to_string(self.template, context=self.context),
+                from_email=settings.EMAIL_HOST_USER,
+                to=self.recipient_list,
+            )
+            email.content_subtype = 'html'
+            email.send(fail_silently=False)
+        except Exception as e:
+            print(e)
+            raise ValidationError(f"Email not sent: {e}") from e
+
+
+def get_client_ip(request):
+    """Get the client's IP address"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+
+def get_hours_since_last_login(last_login, current_time):
+    """
+    Returns the number of hours since the user's last login.
+    """
+    if not last_login:
+        return ''
+    last_login = current_time - last_login
+    hours = last_login.total_seconds() // 3600
+    return f"{int(hours)} hours" if hours > 1 else f"{int(hours)} hour"
+
+
+def send_login_or_logout_email(user, request, action:str):
+    try:
+        subject = f"SENDIT - {action} Confirmation"
+        from_email = settings.EMAIL_HOST_USER
+        to_email = [user.email]
+        now = timezone.now()
+
+        last_login = ''
+        if action == 'logout':
+            last_login = get_hours_since_last_login(user.last_login, now)
+
+        context = {
+            'user': user,
+            'time': now,
+            'ip_address': get_client_ip(request),
+            'user_agent': request.META.get('HTTP_USER_AGENT', 'Unknown'),
+            'session_duration': last_login,
+        }
+
+        html_content = render_to_string(
+            f'account/{action}_success.html', context)
+
+        email = EmailMultiAlternatives(subject, '', from_email, to_email)
+        email.attach_alternative(html_content, "text/html")
+        email.send(fail_silently=False)
+    except Exception as e:
+        print(e)
+        raise ValidationError(f'{action} mail for {user.email} not sent {e}')
+
+
+def set_auth_cookies(response, token):
+    ''' Set auth cookies in the response object and Match cookie lifetimes to token lifetimes (helps consistency)'''
+    # print(f" set authcook:  refr: {token.get('refresh_token')} acc:{token.get('access_token')}")
+
+    access_max_age = int(
+        settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds())
+    refresh_max_age = int(
+        settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds())
+
+    response.set_cookie(
+        key=settings.SIMPLE_JWT["AUTH_COOKIE"],
+        value=token.get('access_token'),
+        httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+        secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+        samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+        path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+        max_age=access_max_age,
+    )
+
+    response.set_cookie(
+        key=settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"],
+        value=token.get('refresh_token'),
+        httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+        secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+        samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+        path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+        max_age=refresh_max_age,
+    )
+    return response
+
+
+def clear_auth_cookies(response):
+    ''' Clear auth cookies by setting them to empty and expiring immediately '''
+    response.delete_cookie(
+        settings.SIMPLE_JWT["AUTH_COOKIE"], path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"])
+    response.delete_cookie(
+        settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"], path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"])
+    return response

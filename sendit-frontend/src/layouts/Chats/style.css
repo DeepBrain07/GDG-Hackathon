@@ -1,0 +1,45 @@
+
+
+.package-card {
+    width: 100%;
+    /* Standard card aspect ratio (e.g., 4:3) so the image looks correct */
+    /* aspect-ratio: 4 / 3;  */
+    /* border-radius: 20px; */
+    position: relative;
+}
+
+.background-image {
+    width: 100%;
+    /* height: 100%; */
+    object-fit: cover; /* Ensures the image fills the card without stretching */
+    display: block;
+}
+
+.card-overlay {
+    position: absolute;
+    bottom: 25px; /* Adjust based on padding in image */
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.package-title {
+    color: white;
+    margin: 0;
+}
+
+.tag-row {
+    display: flex;
+    gap: 10px;
+}
+
+.tag {
+    background-color: #001f72e6; /* Blue with slight transparency */
+    color: white;
+    padding: 8px 16px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* For the emoji */
+}

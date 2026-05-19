@@ -1,0 +1,62 @@
+.background {
+    width: 100vw;
+    min-height: 100dvh;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between; /* Pushes content to top/bottom */
+    padding-bottom: 40px; /* Space for the bottom buttons */
+}
+
+/* Base layer: The Gradient */
+.gradient-layer {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        180deg, 
+        rgba(0, 31, 114, 1) 0%, 
+        rgba(51, 92, 244, 1) 19%, 
+        rgba(255, 255, 255, 1) 100%
+    );
+    z-index: -2;
+}
+
+/* Base layer: The Gradient */
+.gradient-layer-alt2 {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        180deg, 
+        #335CF4 0%, 
+        /* rgba(158, 178, 250, 1) 19%,  */
+        rgba(255, 255, 255, 1) 100%
+    );
+    /* z-index: -2; */
+}
+
+.gradient-layer-alt {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        180deg, 
+        rgba(158, 178, 250, 1) 0%,
+        /* rgba(158, 178, 250, 1) 19%,  */
+        rgba(255, 255, 255, 1) 100%
+    );
+    z-index: -2;
+}
+
+/* Image layer: Your bgLogo */
+.image-layer {
+    position: absolute;
+    inset: 0;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: top center;
+    z-index: -1;
+}
+
