@@ -7,7 +7,7 @@ import { Button } from "../../components/Button";
 
 interface FundEscrowModalProps {
     escrowId: number | null;
-    amount: number | null;
+    amountToFund: number | null;
     isModalOpen: boolean;
     setIsModalOpen: (open: boolean) => void;
 
@@ -19,6 +19,7 @@ const FundEscrowModal = ({  escrowId, amountToFund, isModalOpen, setIsModalOpen 
         setIsModalOpen(false);
     };
 
+    console.log(escrowId, amountToFund);
     return (
         <Modal isOpen={isModalOpen} onClose={handleClose}>
 

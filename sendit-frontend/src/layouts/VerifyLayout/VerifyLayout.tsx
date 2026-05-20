@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import '../SignInLayout/style.css'
 import { PhoneInput } from './PhoneInput';
-import PhoneVerification from './PhoneVerification';
+// import PhoneVerification from './PhoneVerification';
 import { IdentityVerification } from './IdentityVerification';
 import { FaceVerification } from './FaceVerification';
 import { Congratulations } from './congratulations';
