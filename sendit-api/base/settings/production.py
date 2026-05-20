@@ -1,7 +1,7 @@
 from .general import *
 import dj_database_url # Make sure to: pip install dj-database-url psycopg2-binary
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "send-4315.onrender.com"]
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "send-4315.onrender.com", "sendit-backend-e1pa.onrender.com", "gdg-hackathon-c9wt.onrender.com"]
 
 # Supabase (PostgreSQL) Configuration
 DATABASES = {
