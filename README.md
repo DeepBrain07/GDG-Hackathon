@@ -111,7 +111,7 @@ Users are forced to choose between:
 
 | Name | Role | Responsibility | Social |
 |------|------|----------------|--------|
-| Timilehin Olusa  | 💻 Frontend Developer | Mobile app development, APIs, database, and system logic, product strategy  and documentation | https://www.linkedin.com/in/timilehin-olusa-55783240b |
+| Timilehin Olusa  | 💻 Fullstack Engineer | Mobile app development, APIs, database, and system logic, product strategy  and documentation | https://www.linkedin.com/in/timilehin-olusa-55783240b |
 
 ---
 
