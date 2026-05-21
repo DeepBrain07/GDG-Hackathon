@@ -1,6 +1,6 @@
 # 🚀 SendIt.
 
-**Peer-to-Peer Delivery Platform — Interswitch Hackathon (March 2026)**
+**Peer-to-Peer Delivery Platform — GDG Hackathon (May 2026)**
 
 ---
 
@@ -69,13 +69,14 @@ Users are forced to choose between:
 
 ---
 
-## 🎨 Design (Figma)
-
-Explore the full product design,UI screens:
-
-👉 https://www.figma.com/design/yE98ygwWVhSIoaAeIqxOEY/Sendit?node-id=0-1&p=f&t=M7QPx1YsOYm64aXe-0
-
 ## 🛠️ Tech Stack
+
+### Vibe Coding and Workflow
+- **AI Collaborator:** Gemini (Context-driven architecture design, multi-file code generation, and deployment troubleshooting)  
+- **Productivity & Environment:** Google WorkspaceDeployment 
+- **Infrastructure Guidance:** Google Cloud Console & Firebase CLI 
+
+**Vibe Coding Note:** By matching Gemini's architectural logic with platforms like Supabase and Render, you bypassed local system/network limitations to deploy an enterprise-ready ASGI infrastructure within a hackathon timeline
 
 ### Frontend
 - **Framework:** React (with TypeScript)  
@@ -110,9 +111,7 @@ Explore the full product design,UI screens:
 
 | Name | Role | Responsibility | Social |
 |------|------|----------------|--------|
-| Alao Heritage | 🎨 Product Designer / PM | Product strategy, UX design, documentation | https://www.linkedin.com/in/alao-heritage/ |
-| Timilehin Olusa  | 💻 Frontend Developer | Mobile app development and UI implementation | https://x.com/timmieOlusa |
-| Popoola Temilorun | ⚙️ Backend Developer | APIs, database, and system logic |  https://www.linkedin.com/in/popoola-oluwatemilorun |
+| Timilehin Olusa  | 💻 Frontend Developer | Mobile app development, APIs, database, and system logic, product strategy  and documentation | https://www.linkedin.com/in/timilehin-olusa-55783240b |
 
 ---
 
@@ -145,7 +144,7 @@ Explore the full product design,UI screens:
 
 ## ⚠️ Disclaimer
 
-This project was built for the **Interswitch Hackathon (2026)** and is currently an MVP prototype.
+This project was built for the **GDG BWAI Hackathon (2026)** and is currently an MVP prototype.
 
 ---
 
